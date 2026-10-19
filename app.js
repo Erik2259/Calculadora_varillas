@@ -9,6 +9,7 @@
    ========================================================== */
 
 import * as C from './calc.js';
+import { tablaResultado, crearCSV, crearXLSX, crearPDF } from './exportar.js';
 
 const STORAGE_HISTORIAL = 'cv_historial';
 const STORAGE_CONFIG = 'cv_config';
@@ -567,8 +568,7 @@ function enlaceCompartido() {
   return u.href;
 }
 
-async function compartirResultado() {
-  if (!opcionVista()) { mostrarToast('Primero calcula para poder compartir el resultado.'); return; }
+async function compartirTexto() {
   // El enlace va dentro de "text" (sin campo "url"): WhatsApp y otras apps ignoran "text" si llega "url"
   const datos = { title: 'Calculadora de Varillas', text: `${textoResultado()}\n\n${enlaceCompartido()}` };
   if (!navigator.share) {
@@ -585,6 +585,40 @@ async function compartirResultado() {
     if (err.name !== 'AbortError') mostrarToast('No se pudo compartir el resultado.');
   }
 }
+
+/** Genera el archivo (xlsx, csv o pdf) y lo comparte; si no se puede compartir, lo descarga. */
+async function compartirArchivo(formato) {
+  const r = estado.r;
+  const tabla = tablaResultado(r, opcionVista());
+  const blob = formato === 'xlsx' ? crearXLSX(tabla) : formato === 'csv' ? crearCSV(tabla) : crearPDF(tabla, enlaceCompartido());
+  const nombre = `columna-${fmtCorto(r.ancho)}x${fmtCorto(r.largo)}.${formato}`;
+  const archivo = new File([blob], nombre, { type: blob.type });
+  if (navigator.canShare?.({ files: [archivo] })) {
+    try {
+      await navigator.share({ title: 'Calculadora de Varillas', files: [archivo] });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+  }
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: nombre });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  mostrarToast(`Se descargó ${nombre}.`);
+}
+
+function compartirResultado() {
+  if (!opcionVista()) { mostrarToast('Primero calcula para poder compartir el resultado.'); return; }
+  $('#dlgCompartir').showModal();
+}
+$('#dlgCompartir').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-formato]');
+  if (!b) return;
+  $('#dlgCompartir').close();
+  if (b.dataset.formato === 'texto') compartirTexto(); else compartirArchivo(b.dataset.formato);
+});
 $('#btnCompartir').addEventListener('click', compartirResultado);
 
 /** Rellena el formulario con una columna recibida por enlace o desde otra app. Devuelve true si calculó. */

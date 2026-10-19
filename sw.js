@@ -13,7 +13,7 @@
    forzar una reinstalación completa de la caché.
    ========================================================== */
 
-const CACHE_VERSION = 'v3.3.0';
+const CACHE_VERSION = 'v3.4.0';
 const CACHE_NAME = `calculadora-varillas-${CACHE_VERSION}`;
 const CACHE_FUENTES = 'calculadora-varillas-fuentes';   // Google Fonts (sin versión: no cambian)
 const ORIGENES_FUENTES = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
@@ -24,6 +24,7 @@ const APP_SHELL = [
   './style.css',
   './app.js',
   './calc.js',
+  './exportar.js',
   './manifest.json',
   './assets/logo.svg',
   './icons/icon-192.png',
