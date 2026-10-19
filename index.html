@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Calcula cuántas varillas y de qué diámetro necesita una columna de concreto.">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#131a22" media="(prefers-color-scheme: dark)">
+
+  <title>Calculadora de Varillas</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Varillas">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============ ENCABEZADO ============ -->
+  <header class="header">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="" width="36" height="36">
+      <div>
+        <h1>Calculadora de Varillas</h1>
+        <p>Para columnas de concreto</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span id="offline" class="offline" hidden>Sin conexión</span>
+      <button type="button" id="btnTema" class="btn-header btn-icon" aria-label="Cambiar tema claro u oscuro" title="Tema claro / oscuro (Alt+T)">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      </button>
+      <button type="button" id="btnLimpiarTop" class="btn-header btn-icon header-extra" aria-label="Limpiar formulario" title="Limpiar (Alt+L)">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+      </button>
+      <button type="button" id="btnCopiar" class="btn-header btn-icon header-extra" aria-label="Copiar resultado" title="Copiar resultado (Alt+C)">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+      </button>
+      <button type="button" id="btnCompartir" class="btn-header btn-icon header-extra" aria-label="Compartir resultado" title="Compartir resultado (Alt+S)">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4"/><path d="m15.4 6.5-6.8 4"/></svg>
+      </button>
+      <button type="button" id="btnImprimir" class="btn-header btn-icon header-extra" aria-label="Imprimir resultado" title="Imprimir (Alt+P)">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M6 14h12v7H6z"/></svg>
+      </button>
+      <button type="button" id="btnPantalla" class="btn-header btn-icon header-extra" aria-label="Pantalla completa" aria-pressed="false" title="Pantalla completa (F11)">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M8 3H3v5"/><path d="M16 3h5v5"/><path d="M21 16v5h-5"/><path d="M3 16v5h5"/></svg>
+      </button>
+      <button type="button" id="btnInstall" class="btn-header" aria-label="Instalar aplicación" hidden>
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+        <span>Instalar</span>
+      </button>
+      <button type="button" id="btnHistorial" class="btn-header" aria-haspopup="dialog" aria-label="Historial">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        <span>Historial</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ============ DATOS ============ -->
+    <section class="card form-card" aria-labelledby="tDatos">
+      <h2 id="tDatos" class="card-title">Datos de la columna</h2>
+
+      <form id="formColumna" novalidate>
+        <div class="row">
+          <div class="field">
+            <label for="ancho">Ancho</label>
+            <div class="input-unit">
+              <input type="number" id="ancho" inputmode="decimal" min="1" step="any" placeholder="30" aria-describedby="ancho-err" required>
+              <span>cm</span>
+            </div>
+            <p class="error" id="ancho-err" hidden></p>
+          </div>
+          <div class="field">
+            <label for="largo">Largo</label>
+            <div class="input-unit">
+              <input type="number" id="largo" inputmode="decimal" min="1" step="any" placeholder="30" aria-describedby="largo-err" required>
+              <span>cm</span>
+            </div>
+            <p class="error" id="largo-err" hidden></p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="porcentaje">Porcentaje de acero</label>
+          <div class="pct-row">
+            <div class="input-unit input-unit--pct">
+              <input type="number" id="porcentaje" inputmode="decimal" min="0.1" max="10" step="any" value="1" aria-describedby="porcentaje-hint porcentaje-err" required>
+              <span>%</span>
+            </div>
+            <div class="chips" role="group" aria-label="Porcentajes rápidos">
+              <button type="button" class="chip" data-pct="1">1%</button>
+              <button type="button" class="chip" data-pct="2">2%</button>
+              <button type="button" class="chip" data-pct="3">3%</button>
+              <button type="button" class="chip" data-pct="4">4%</button>
+            </div>
+          </div>
+          <p class="hint" id="porcentaje-hint">Lo normal en columnas es entre 1 % y 4 %.</p>
+          <p class="error" id="porcentaje-err" hidden></p>
+        </div>
+
+        <fieldset class="field">
+          <legend>Varilla</legend>
+          <div class="varillas" id="selectorVarilla">
+            <label class="varilla varilla--auto">
+              <input type="radio" name="varilla" value="auto" checked>
+              <span><strong>Automático</strong><small>te recomendamos una</small></span>
+            </label>
+            <!-- Las demás opciones se generan desde calc.js -->
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">Calcular</button>
+          <button type="button" id="btnLimpiar" class="btn btn-secondary">Limpiar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ RESULTADO ============ -->
+    <section class="card result-card" id="resultado" aria-labelledby="tResultado">
+      <h2 id="tResultado" class="card-title">Resultado</h2>
+
+      <div id="respuesta" class="answer" aria-live="polite" hidden></div>
+
+      <figure class="croquis">
+        <div class="croquis-stage" id="croquisZona">
+          <svg id="croquis" viewBox="0 0 600 420" role="img" aria-labelledby="croquisDesc">
+            <desc id="croquisDesc">Croquis de la columna.</desc>
+            <defs>
+              <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+                <path d="M0 1.5 L9 5 L0 8.5 z" class="mk"/>
+              </marker>
+              <marker id="flechaMal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+                <path d="M0 1.5 L9 5 L0 8.5 z" class="mk-mal"/>
+              </marker>
+            </defs>
+            <rect id="secConcreto" class="sec-concreto" x="200" y="110" width="200" height="200" rx="2"/>
+            <rect id="secEstribo" class="sec-estribo" x="220" y="130" width="160" height="160" rx="4"/>
+            <g id="gVarillas"></g>
+            <g id="gCotas"></g>
+          </svg>
+          <p class="croquis-vacio" id="croquisVacio">Escribe las medidas y presiona <strong>Calcular</strong>.</p>
+        </div>
+        <figcaption class="leyenda">
+          <span><i class="lg-varilla"></i>Varilla</span>
+          <span><i class="lg-estribo"></i>Estribo</span>
+          <span><i class="lg-concreto"></i>Concreto</span>
+        </figcaption>
+      </figure>
+
+      <div id="detalle" hidden>
+        <dl class="datos" id="datos"></dl>
+
+        <h3 class="subtitle">Otras opciones</h3>
+        <p class="hint">Toca una opción para verla en el croquis.</p>
+        <ul class="opciones" id="opciones"></ul>
+
+        <details class="como">
+          <summary>¿Cómo se calculó?</summary>
+          <ol id="pasos"></ol>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ HISTORIAL ============ -->
+  <dialog id="dlgHistorial" class="drawer" aria-labelledby="tHist">
+    <div class="drawer-head">
+      <h2 id="tHist">Cálculos recientes</h2>
+      <button type="button" class="btn-close" data-cerrar aria-label="Cerrar">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <ul class="historial" id="listaHistorial"></ul>
+    <p class="hint vacio" id="historialVacio">Aún no hay cálculos guardados.</p>
+    <div class="drawer-foot">
+      <button type="button" id="btnBorrarHistorial" class="btn btn-danger">Borrar historial</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlgConfirmar" class="modal" aria-labelledby="tConf">
+    <form method="dialog">
+      <h2 id="tConf">¿Borrar todo el historial?</h2>
+      <p>Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button value="no" class="btn btn-secondary">Cancelar</button>
+        <button value="si" class="btn btn-danger">Borrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
