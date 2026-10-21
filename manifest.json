@@ -60,8 +60,9 @@
       "type": "application/json",
       "screenshots": [
         {
-          "src": "icons/icon-512.png",
-          "sizes": "512x512",
+          "src": "screenshots/widget.png",
+          "sizes": "600x400",
+          "type": "image/png",
           "label": "Widget con el último cálculo de varillas"
         }
       ],
@@ -73,6 +74,22 @@
       ],
       "auth": false,
       "update": 3600
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/escritorio.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Calculadora de varillas en escritorio"
+    },
+    {
+      "src": "screenshots/movil.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Calculadora de varillas en el celular"
     }
   ]
 }
