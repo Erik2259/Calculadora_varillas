@@ -189,6 +189,22 @@
     </div>
   </dialog>
 
+  <!-- ============ COMPARTIR ============ -->
+  <dialog id="dlgCompartir" class="modal" aria-labelledby="tComp">
+    <div class="drawer-head">
+      <h2 id="tComp">Compartir resultado</h2>
+      <button type="button" class="btn-close" data-cerrar aria-label="Cerrar">
+        <svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="share-opciones">
+      <button type="button" class="btn btn-secondary" data-formato="xlsx">Excel (.xlsx)</button>
+      <button type="button" class="btn btn-secondary" data-formato="csv">CSV (.csv)</button>
+      <button type="button" class="btn btn-secondary" data-formato="pdf">PDF (.pdf)</button>
+      <button type="button" class="btn btn-secondary" data-formato="texto">Texto con enlace</button>
+    </div>
+  </dialog>
+
   <dialog id="dlgConfirmar" class="modal" aria-labelledby="tConf">
     <form method="dialog">
       <h2 id="tConf">¿Borrar todo el historial?</h2>

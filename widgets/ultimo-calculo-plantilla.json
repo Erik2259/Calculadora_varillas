@@ -1,0 +1,42 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Último cálculo",
+      "size": "Small",
+      "isSubtle": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "${columna}",
+      "size": "Medium",
+      "weight": "Bolder",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "${respuesta}",
+      "size": "ExtraLarge",
+      "weight": "Bolder",
+      "color": "Accent",
+      "wrap": true,
+      "spacing": "Small"
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        { "title": "Acero necesario", "value": "${asReq}" },
+        { "title": "Acero propuesto", "value": "${asProp}" },
+        { "title": "Espacio entre varillas", "value": "${separacion}" },
+        { "title": "¿Caben?", "value": "${caben}" }
+      ]
+    }
+  ],
+  "actions": [
+    { "type": "Action.Execute", "title": "Abrir calculadora", "verb": "abrir" },
+    { "type": "Action.Execute", "title": "Nuevo cálculo", "verb": "nuevo" }
+  ]
+}

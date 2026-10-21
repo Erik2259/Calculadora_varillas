@@ -13,7 +13,7 @@
    forzar una reinstalación completa de la caché.
    ========================================================== */
 
-const CACHE_VERSION = 'v3.3.0';
+const CACHE_VERSION = 'v3.5.0';
 const CACHE_NAME = `calculadora-varillas-${CACHE_VERSION}`;
 const CACHE_FUENTES = 'calculadora-varillas-fuentes';   // Google Fonts (sin versión: no cambian)
 const ORIGENES_FUENTES = ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'];
@@ -24,6 +24,9 @@ const APP_SHELL = [
   './style.css',
   './app.js',
   './calc.js',
+  './exportar.js',
+  './widgets/ultimo-calculo-plantilla.json',
+  './widgets/ultimo-calculo-datos.json',
   './manifest.json',
   './assets/logo.svg',
   './icons/icon-192.png',
@@ -109,4 +112,50 @@ self.addEventListener('fetch', (event) => {
     }
     return new Response('Sin conexión', { status: 503, statusText: 'Offline' });
   })());
+});
+
+
+/* ==========================================================
+   Widget de Windows 11 (panel de widgets)
+   ----------------------------------------------------------
+   La página guarda el último cálculo en la caché CACHE_WIDGET y avisa
+   con postMessage; aquí se vuelve a dibujar la tarjeta adaptable.
+   ========================================================== */
+const CACHE_WIDGET = 'varillas-widget-datos';
+const CLAVE_DATOS_WIDGET = './widgets/ultimo-calculo-datos.json';
+
+async function renderizarWidget(widget) {
+  if (!widget || !self.widgets) return;
+  const { msAcTemplate, data, tag } = widget.definition;
+  const cache = await caches.open(CACHE_WIDGET);
+  const guardado = await cache.match(CLAVE_DATOS_WIDGET);
+  const [template, datos] = await Promise.all([
+    fetch(msAcTemplate).then((r) => r.text()),
+    guardado ? guardado.text() : fetch(data).then((r) => r.text()),
+  ]);
+  await self.widgets.updateByTag(tag, { template, data: datos });
+}
+
+async function actualizarWidgets() {
+  if (!self.widgets) return;
+  const instalados = await self.widgets.matchAll({ installed: true });
+  await Promise.all(instalados.map((w) => renderizarWidget(w).catch(() => {})));
+}
+
+if (self.widgets) {
+  self.addEventListener('widgetinstall', (event) => event.waitUntil(renderizarWidget(event.widget)));
+  self.addEventListener('widgetresume', (event) => event.waitUntil(renderizarWidget(event.widget)));
+  self.addEventListener('widgetclick', (event) => {
+    const destino = event.action === 'nuevo' ? './index.html?nuevo=1' : './index.html';
+    event.waitUntil(self.clients.openWindow(destino));
+  });
+  self.addEventListener('activate', (event) => event.waitUntil(actualizarWidgets()));
+}
+
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'ultimo-calculo') event.waitUntil(actualizarWidgets());
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.tipo === 'widget-actualizar') event.waitUntil(actualizarWidgets());
 });

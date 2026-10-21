@@ -9,6 +9,7 @@
    ========================================================== */
 
 import * as C from './calc.js';
+import { tablaResultado, crearCSV, crearXLSX, crearPDF } from './exportar.js';
 
 const STORAGE_HISTORIAL = 'cv_historial';
 const STORAGE_CONFIG = 'cv_config';
@@ -136,10 +137,31 @@ function calcular({ guardar = false } = {}) {
   mostrarResultado();
   if (guardar) {
     guardarEnHistorial(entrada);
+    actualizarWidget();
     if (matchMedia('(max-width: 899px)').matches) {
       $('#resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
+}
+
+/** Guarda el último cálculo para el widget de Windows 11 y le avisa al service worker. */
+async function actualizarWidget() {
+  if (!('caches' in window) || !navigator.serviceWorker?.controller) return;
+  const r = estado.r;
+  const o = r.elegida;
+  const datos = {
+    columna: `Columna ${fmtCorto(r.ancho)} × ${fmtCorto(r.largo)} cm · acero ${fmtCorto(r.porcentaje)} %`,
+    respuesta: `${o.n} varillas de ${o.varilla.nombre}`,
+    asReq: `${fmt(r.asReq)} cm²`,
+    asProp: `${fmt(o.asProp)} cm²`,
+    separacion: o.lb > 0 && o.lh > 0 ? `${fmt(o.sepLibre, 1)} cm (mín. ${fmt(o.sMin, 1)})` : '—',
+    caben: o.cabe ? 'Sí' : 'No',
+  };
+  try {
+    const cache = await caches.open('varillas-widget-datos');
+    await cache.put('./widgets/ultimo-calculo-datos.json', new Response(JSON.stringify(datos), { headers: { 'Content-Type': 'application/json' } }));
+    navigator.serviceWorker.controller.postMessage({ tipo: 'widget-actualizar' });
+  } catch { /* el widget es opcional */ }
 }
 
 function limpiar() {
@@ -567,8 +589,7 @@ function enlaceCompartido() {
   return u.href;
 }
 
-async function compartirResultado() {
-  if (!opcionVista()) { mostrarToast('Primero calcula para poder compartir el resultado.'); return; }
+async function compartirTexto() {
   // El enlace va dentro de "text" (sin campo "url"): WhatsApp y otras apps ignoran "text" si llega "url"
   const datos = { title: 'Calculadora de Varillas', text: `${textoResultado()}\n\n${enlaceCompartido()}` };
   if (!navigator.share) {
@@ -585,6 +606,51 @@ async function compartirResultado() {
     if (err.name !== 'AbortError') mostrarToast('No se pudo compartir el resultado.');
   }
 }
+
+function descargarArchivo(blob, nombre) {
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: nombre });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+
+/** Genera el archivo (xlsx, csv o pdf) y lo comparte; si no se puede compartir, lo descarga. El PDF se descarga siempre. */
+async function compartirArchivo(formato) {
+  const r = estado.r;
+  const tabla = tablaResultado(r, opcionVista());
+  const blob = formato === 'xlsx' ? crearXLSX(tabla) : formato === 'csv' ? crearCSV(tabla) : crearPDF(tabla, enlaceCompartido());
+  const nombre = `columna-${fmtCorto(r.ancho)}x${fmtCorto(r.largo)}.${formato}`;
+  const archivo = new File([blob], nombre, { type: blob.type });
+  const descargado = formato === 'pdf';
+  if (descargado) {
+    descargarArchivo(blob, nombre);
+    mostrarToast(`Se descargó ${nombre}.`);
+  }
+  if (navigator.canShare?.({ files: [archivo] })) {
+    try {
+      await navigator.share({ title: 'Calculadora de Varillas', files: [archivo] });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+  }
+  if (!descargado) {
+    descargarArchivo(blob, nombre);
+    mostrarToast(`Se descargó ${nombre}.`);
+  }
+}
+
+function compartirResultado() {
+  if (!opcionVista()) { mostrarToast('Primero calcula para poder compartir el resultado.'); return; }
+  $('#dlgCompartir').showModal();
+}
+$('#dlgCompartir').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-formato]');
+  if (!b) return;
+  $('#dlgCompartir').close();
+  if (b.dataset.formato === 'texto') compartirTexto(); else compartirArchivo(b.dataset.formato);
+});
 $('#btnCompartir').addEventListener('click', compartirResultado);
 
 /** Rellena el formulario con una columna recibida por enlace o desde otra app. Devuelve true si calculó. */
@@ -606,6 +672,11 @@ function aplicarColumnaRecibida({ ancho, largo, porcentaje, varilla }) {
 function procesarParametrosURL() {
   const q = new URLSearchParams(location.search);
   if (![...q.keys()].length) return;
+  if (q.get('nuevo') === '1') {   // viene del botón "Nuevo cálculo" del widget
+    history.replaceState(null, '', location.pathname);
+    el.ancho.focus();
+    return;
+  }
 
   let columna = null;
   // 1) Enlace propio, ya sea directo o dentro del parámetro "url"/"text" compartido
