@@ -69,3 +69,7 @@ Los últimos 20 cálculos se guardan en el dispositivo (`localStorage`). Tocar u
 ```bash
 node --test tests/calc.test.mjs
 ```
+
+## Widget de Windows 11
+
+Con la app instalada en Windows 11 (Edge o Chrome), abre el panel de widgets (**Win + W**) → *Agregar widgets* → **Último cálculo**. Muestra la última columna calculada y tiene los botones *Abrir calculadora* y *Nuevo cálculo*. Está definido en `manifest.json` (`widgets`), con la tarjeta adaptable en `widgets/` y la lógica en `sw.js`. Para probarlo se necesita WinAppSDK 1.2 y el modo de desarrollador activado; para publicarlo en Microsoft Store, empaquétala con PWABuilder desde una URL pública.

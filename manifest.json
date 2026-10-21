@@ -6,7 +6,9 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay"],
+  "display_override": [
+    "window-controls-overlay"
+  ],
   "orientation": "any",
   "lang": "es",
   "dir": "ltr",
@@ -21,7 +23,10 @@
       "url": "url"
     }
   },
-  "categories": ["utilities", "productivity"],
+  "categories": [
+    "utilities",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -40,6 +45,33 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "widgets": [
+    {
+      "name": "Último cálculo",
+      "short_name": "Varillas",
+      "description": "Muestra el último cálculo de varillas y abre la calculadora.",
+      "tag": "ultimo-calculo",
+      "template": "ultimo-calculo",
+      "ms_ac_template": "widgets/ultimo-calculo-plantilla.json",
+      "data": "widgets/ultimo-calculo-datos.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "icons/icon-512.png",
+          "sizes": "512x512",
+          "label": "Widget con el último cálculo de varillas"
+        }
+      ],
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "auth": false,
+      "update": 3600
     }
   ]
 }

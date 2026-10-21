@@ -137,10 +137,31 @@ function calcular({ guardar = false } = {}) {
   mostrarResultado();
   if (guardar) {
     guardarEnHistorial(entrada);
+    actualizarWidget();
     if (matchMedia('(max-width: 899px)').matches) {
       $('#resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
+}
+
+/** Guarda el último cálculo para el widget de Windows 11 y le avisa al service worker. */
+async function actualizarWidget() {
+  if (!('caches' in window) || !navigator.serviceWorker?.controller) return;
+  const r = estado.r;
+  const o = r.elegida;
+  const datos = {
+    columna: `Columna ${fmtCorto(r.ancho)} × ${fmtCorto(r.largo)} cm · acero ${fmtCorto(r.porcentaje)} %`,
+    respuesta: `${o.n} varillas de ${o.varilla.nombre}`,
+    asReq: `${fmt(r.asReq)} cm²`,
+    asProp: `${fmt(o.asProp)} cm²`,
+    separacion: o.lb > 0 && o.lh > 0 ? `${fmt(o.sepLibre, 1)} cm (mín. ${fmt(o.sMin, 1)})` : '—',
+    caben: o.cabe ? 'Sí' : 'No',
+  };
+  try {
+    const cache = await caches.open('varillas-widget-datos');
+    await cache.put('./widgets/ultimo-calculo-datos.json', new Response(JSON.stringify(datos), { headers: { 'Content-Type': 'application/json' } }));
+    navigator.serviceWorker.controller.postMessage({ tipo: 'widget-actualizar' });
+  } catch { /* el widget es opcional */ }
 }
 
 function limpiar() {
@@ -651,6 +672,11 @@ function aplicarColumnaRecibida({ ancho, largo, porcentaje, varilla }) {
 function procesarParametrosURL() {
   const q = new URLSearchParams(location.search);
   if (![...q.keys()].length) return;
+  if (q.get('nuevo') === '1') {   // viene del botón "Nuevo cálculo" del widget
+    history.replaceState(null, '', location.pathname);
+    el.ancho.focus();
+    return;
+  }
 
   let columna = null;
   // 1) Enlace propio, ya sea directo o dentro del parámetro "url"/"text" compartido
